@@ -1,0 +1,16 @@
+# Credenciales
+config/mail_config.php
+config/Database.php
+
+# Temporales
+generar_hash.php
+scripts/temp_reporte.xls
+*.log
+
+# Copias de base de datos con datos reales
+*.sql
+
+# Editor / sistema
+.vscode/
+.DS_Store
+Thumbs.db
