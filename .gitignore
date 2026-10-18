@@ -9,6 +9,7 @@ scripts/temp_reporte.xls
 
 # Copias de base de datos con datos reales
 *.sql
+!database/schema.sql
 
 # Editor / sistema
 .vscode/
