@@ -47,6 +47,6 @@ class Almacen {
 
     public function cambiarEstado(int $id, bool $estado): bool {
         $stmt = $this->db->prepare("UPDATE almacenes SET estado = :estado WHERE idAlmacen = :id");
-        return $stmt->execute(['estado' => $estado, 'id' => $id]);
+        return $stmt->execute(['estado' => $estado ? 1 : 0, 'id' => $id]);
     }
 }

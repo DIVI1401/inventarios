@@ -14,3 +14,5 @@ scripts/temp_reporte.xls
 .vscode/
 .DS_Store
 Thumbs.db
+# El esquema de PostgreSQL sí se sube (no tiene datos reales)
+!database/schema.sql

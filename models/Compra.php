@@ -79,8 +79,9 @@ class Compra {
             $stmtInventario = $this->db->prepare(
                 "INSERT INTO inventarios (idAlmacen, idInsumo, cantidadDisponible) 
                  VALUES (:idAlmacen, :idInsumo, :cantidad)
-                 ON DUPLICATE KEY UPDATE 
-                    cantidadDisponible = cantidadDisponible + :cantidad2"
+                 ON CONFLICT (idAlmacen, idInsumo) DO UPDATE SET
+                    cantidadDisponible = inventarios.cantidadDisponible + EXCLUDED.cantidadDisponible,
+                    fechaActualizacion = NOW()"
             );
 
             foreach ($detalles as $d) {
@@ -95,7 +96,6 @@ class Compra {
                     'idAlmacen' => $idAlmacen,
                     'idInsumo' => $d['idInsumo'],
                     'cantidad' => $d['cantidad'],
-                    'cantidad2' => $d['cantidad'],
                 ]);
             }
 
@@ -129,8 +129,7 @@ class Compra {
         $stmt = $this->db->query(
             "SELECT COALESCE(SUM(total), 0) AS gastoTotal
              FROM compras
-             WHERE MONTH(fechaCompra) = MONTH(CURDATE())
-             AND YEAR(fechaCompra) = YEAR(CURDATE())"
+             WHERE date_trunc('month', fechaCompra) = date_trunc('month', CURRENT_DATE)"
         );
         return (float)$stmt->fetch()['gastoTotal'];
     }

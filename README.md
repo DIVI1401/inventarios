@@ -12,5 +12,12 @@ PHP (MVC), MySQL/MariaDB, XAMPP, PHPMailer.
 4. Copia `config/mail_config.example.php` como `config/mail_config.php` y pon tus credenciales SMTP.
 5. Abre `http://localhost/aetherstock/index.php`.
 
+## Despliegue en Render (PostgreSQL)
+1. En Render crea un **PostgreSQL** (New → Postgres) en la misma región que el Web Service.
+2. En el Web Service → Environment agrega:
+   - `DATABASE_URL` = la *Internal Database URL* del Postgres
+   - `ADMIN_EMAIL` y `ADMIN_PASSWORD` = usuario administrador inicial (solo se crea si no hay usuarios)
+3. Al arrancar, el contenedor ejecuta `database/init.php`, que crea las tablas de `database/schema.sql` si no existen.
+
 ## Equipo
 Oscar Álvarez, Fernando Arteaga, Juan Simanca, Hernán Oliveros

@@ -81,10 +81,10 @@ class Insumo {
     // Si el almacén todavía no tiene este insumo en inventario, lo crea con cantidad 0.
     private function propagarStockMinimo($idInsumo, $stockMinimo) {
         $sql = "INSERT INTO inventarios (idAlmacen, idInsumo, cantidadDisponible, stockMinimo)
-                SELECT idAlmacen, ?, 0, ? FROM almacenes
-                ON DUPLICATE KEY UPDATE stockMinimo = ?";
+                SELECT idAlmacen, CAST(? AS INTEGER), 0, CAST(? AS NUMERIC) FROM almacenes
+                ON CONFLICT (idAlmacen, idInsumo) DO UPDATE SET stockMinimo = EXCLUDED.stockMinimo";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$idInsumo, $stockMinimo, $stockMinimo]);
+        $stmt->execute([$idInsumo, (float)$stockMinimo]);
     }
 
     public function cambiarEstado($id, $estado) {
@@ -95,7 +95,7 @@ class Insumo {
     public function proximosAVencer() {
         $sql = "SELECT * FROM insumos 
                 WHERE fechaVencimiento IS NOT NULL 
-                AND fechaVencimiento >= CURDATE() 
+                AND fechaVencimiento >= CURRENT_DATE
                 ORDER BY fechaVencimiento ASC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

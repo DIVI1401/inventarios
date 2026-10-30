@@ -52,7 +52,7 @@ class Proveedor {
 
     public function cambiarEstado(int $id, bool $estado): bool {
         $stmt = $this->db->prepare("UPDATE proveedores SET estado = :estado WHERE idProveedor = :id");
-        return $stmt->execute(['estado' => $estado, 'id' => $id]);
+        return $stmt->execute(['estado' => $estado ? 1 : 0, 'id' => $id]);
     }
 
     // Requisito 40: comparar precios de compra entre proveedores de un mismo insumo
