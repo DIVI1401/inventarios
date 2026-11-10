@@ -26,10 +26,34 @@
                 </select>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Precio de Venta ($) *</label>
-                <input type="number" step="0.01" name="precio" class="form-control" required value="<?= $producto['precio'] ?>">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Margen de ganancia (%) *</label>
+                    <input type="number" step="0.5" min="0" max="<?= Producto::MARGEN_MAXIMO ?>" name="margenGanancia" id="inputMargen" class="form-control" required value="<?= (float)$producto['margenGanancia'] ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Costo de la receta</label>
+                    <input type="text" class="form-control" readonly value="$<?= number_format($costoReceta, 2) ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Precio de venta (automático)</label>
+                    <input type="text" id="precioCalculado" class="form-control fw-bold" readonly
+                           value="<?= $costoReceta > 0 ? '$' . number_format((float)$producto['precio'], 2) : 'Sin receta' ?>">
+                </div>
+                <div class="col-12 mb-3"><div class="form-text">Porcentaje del precio de venta que queda como ganancia. En restaurantes se usa la regla del <em>food cost</em>: los insumos deben costar cerca del 30 % del precio, o sea un margen del 70 %. El precio de venta se calcula solo al guardar la receta.</div></div>
             </div>
+            <script>
+            (function () {
+                const costo = <?= json_encode((float)$costoReceta) ?>, redondeo = <?= Producto::REDONDEO ?>, max = <?= Producto::MARGEN_MAXIMO ?>;
+                const margen = document.getElementById('inputMargen'), salida = document.getElementById('precioCalculado');
+                margen.addEventListener('input', function () {
+                    if (costo <= 0) return;
+                    const m = Math.min(max, Math.max(0, parseFloat(margen.value) || 0));
+                    const precio = Math.ceil(costo / (1 - m / 100) / redondeo) * redondeo;
+                    salida.value = '$' + precio.toLocaleString('es-CO', {minimumFractionDigits: 2});
+                });
+            })();
+            </script>
 
             <div class="mb-3">
                 <label class="form-label">Descripción</label>

@@ -53,7 +53,6 @@ CREATE TABLE IF NOT EXISTS insumos (
     nombre            VARCHAR(100)  NOT NULL,
     unidadMedida      VARCHAR(30)   NOT NULL,
     precioUnitario    NUMERIC(10,2) NOT NULL DEFAULT 0,
-    fechaVencimiento  DATE,
     idCategoria       INTEGER REFERENCES categorias (idCategoria),
     estado            SMALLINT      NOT NULL DEFAULT 1
 );
@@ -83,7 +82,8 @@ CREATE TABLE IF NOT EXISTS detalle_compras (
     idInsumo         INTEGER       NOT NULL REFERENCES insumos (idInsumo),
     cantidad         NUMERIC(10,2) NOT NULL,
     precioUnitario   NUMERIC(10,2) NOT NULL,
-    subtotal         NUMERIC(10,2) GENERATED ALWAYS AS (cantidad * precioUnitario) STORED
+    subtotal         NUMERIC(10,2) GENERATED ALWAYS AS (cantidad * precioUnitario) STORED,
+    fechaVencimiento DATE  -- cada lote comprado tiene su propia fecha de vencimiento
 );
 
 CREATE TABLE IF NOT EXISTS mermas (
@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS productos (
     idProducto      SERIAL PRIMARY KEY,
     nombre          VARCHAR(100)  NOT NULL,
     descripcion     TEXT,
-    precio          NUMERIC(10,2) NOT NULL,
+    precio          NUMERIC(10,2) NOT NULL DEFAULT 0,  -- se calcula: costo receta / (1 - margen)
+    margenGanancia  NUMERIC(5,2)  NOT NULL DEFAULT 70 CHECK (margenGanancia >= 0 AND margenGanancia <= 95),
     idCategoria     INTEGER REFERENCES categorias (idCategoria) ON DELETE SET NULL,
     estado          SMALLINT      DEFAULT 1,
     fecha_creacion  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Insumo.php';
 require_once __DIR__ . '/../models/Compra.php';
 require_once __DIR__ . '/../models/Categoria.php';
+require_once __DIR__ . '/../models/Producto.php';
 class InsumoController {
     private Insumo $insumoModel;
 
@@ -24,11 +25,10 @@ class InsumoController {
         $nombre = trim($_POST['nombre'] ?? '');
         $unidadMedida = $_POST['unidadMedida'] ?? '';
         $precioUnitario = (float)($_POST['precioUnitario'] ?? 0);
-        $stockMinimo = (int)($_POST['stockMinimo'] ?? 5);
-        $fechaVencimiento = $_POST['fechaVencimiento'] ?? null;
+        $stockMinimo = (float)($_POST['stockMinimo'] ?? 0);
         $idCategoria = (int)($_POST['idCategoria'] ?? 0) ?: null;
 
-        $errores = $this->insumoModel->validar($nombre, $precioUnitario, $fechaVencimiento);
+        $errores = $this->insumoModel->validar($nombre, $precioUnitario, $stockMinimo);
 
         if (!empty($errores)) {
             $_SESSION['error'] = implode(' ', $errores);
@@ -36,7 +36,7 @@ class InsumoController {
             exit;
         }
 
-        $this->insumoModel->crear($nombre, $unidadMedida, $precioUnitario, $stockMinimo, $fechaVencimiento, $idCategoria);
+        $this->insumoModel->crear($nombre, $unidadMedida, $precioUnitario, $stockMinimo, $idCategoria);
         header("Location: index.php?action=insumos");
         exit;
     }
@@ -44,6 +44,10 @@ class InsumoController {
     public function mostrarFormularioEditar(): void {
         $id = (int)($_GET['id'] ?? 0);
         $insumo = $this->insumoModel->buscarPorId($id);
+        if (!$insumo) {
+            header("Location: index.php?action=insumos");
+            exit;
+        }
         $categorias = (new Categoria())->listarTodas();
         require __DIR__ . '/../views/insumos/editar.php';
     }
@@ -53,11 +57,10 @@ class InsumoController {
         $nombre = trim($_POST['nombre'] ?? '');
         $unidadMedida = $_POST['unidadMedida'] ?? '';
         $precioUnitario = (float)($_POST['precioUnitario'] ?? 0);
-        $stockMinimo = (int)($_POST['stockMinimo'] ?? 5);
-        $fechaVencimiento = $_POST['fechaVencimiento'] ?? null;
+        $stockMinimo = (float)($_POST['stockMinimo'] ?? 0);
         $idCategoria = (int)($_POST['idCategoria'] ?? 0) ?: null;
 
-        $errores = $this->insumoModel->validar($nombre, $precioUnitario, $fechaVencimiento);
+        $errores = $this->insumoModel->validar($nombre, $precioUnitario, $stockMinimo);
 
         if (!empty($errores)) {
             $_SESSION['error'] = implode(' ', $errores);
@@ -65,7 +68,9 @@ class InsumoController {
             exit;
         }
 
-        $this->insumoModel->editar($id, $nombre, $unidadMedida, $precioUnitario, $stockMinimo, $fechaVencimiento, $idCategoria);
+        $this->insumoModel->editar($id, $nombre, $unidadMedida, $precioUnitario, $stockMinimo, $idCategoria);
+        // El costo de las recetas que usan este insumo cambió: actualiza sus precios de venta
+        (new Producto())->recalcularPrecios(idInsumo: $id);
         header("Location: index.php?action=insumos");
         exit;
     }

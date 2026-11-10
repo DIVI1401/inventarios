@@ -62,7 +62,7 @@ class PgStatement extends PDOStatement {
         'nombreUsuario', 'nombreProducto', 'ubicacionAlmacen', 'totalItems', 'gastoTotal',
         'vecesComprado', 'precioPromedio', 'precioMinimo', 'precioMaximo', 'ultimaCompra',
         'ultimaFecha', 'costoTotal', 'cantidadRequerida', 'numVentas', 'totalVendido',
-        'ticketPromedio', 'unidadesVendidas',
+        'ticketPromedio', 'unidadesVendidas', 'margenGanancia', 'diasRestantes',
     ];
 
     private static ?array $mapa = null;
