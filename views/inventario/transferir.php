@@ -1,6 +1,6 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<h2>Transferencia de Insumos entre Almacenes (REQ-22)</h2>
+<h2>Transferencia de Insumos entre Almacenes</h2>
 
 <?php if (isset($_GET['err'])): ?>
     <p style="color: red; font-weight: bold;">Error al realizar la transferencia. Verifica el stock en el almacén origen.</p>
