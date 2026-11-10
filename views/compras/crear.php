@@ -34,6 +34,7 @@
                 <th>Cantidad comprada</th>
                 <th>Factor conversión</th>
                 <th>Precio unitario (base)</th>
+                <th>Vence (opcional)</th>
             </tr>
             <tr>
                 <td>
@@ -45,9 +46,10 @@
                         <?php endforeach; ?>
                     </select>
                 </td>
-                <td><input type="number" step="0.01" name="cantidad[]"></td>
+                <td><input type="number" step="0.01" min="0.01" name="cantidad[]"></td>
                 <td><input type="number" step="0.01" name="factorConversion[]" value="1" title="Ej: si compras por caja y trae 24 unidades, pon 24"></td>
-                <td><input type="number" step="0.01" name="precioUnitario[]" class="input-precio"></td>
+                <td><input type="number" step="0.01" min="0.01" name="precioUnitario[]" class="input-precio"></td>
+                <td><input type="date" name="fechaVencimiento[]" min="<?= date('Y-m-d') ?>" title="Fecha de vencimiento de este lote"></td>
             </tr>
         </table>
 

@@ -44,7 +44,7 @@ class Compra {
     }
 
     /**
-     * $detalles = [ ['idInsumo' => 1, 'cantidad' => 10, 'precioUnitario' => 2500], ... ]
+     * $detalles = [ ['idInsumo' => 1, 'cantidad' => 10, 'precioUnitario' => 2500, 'fechaVencimiento' => '2026-12-01'|null], ... ]
      */
     public function crear(int $idProveedor, int $idAlmacen, int $idUsuario, array $detalles): bool {
         try {
@@ -71,8 +71,8 @@ class Compra {
 
             // 2. Insertar cada línea de detalle
             $stmtDetalle = $this->db->prepare(
-                "INSERT INTO detalle_compras (idCompra, idInsumo, cantidad, precioUnitario) 
-                 VALUES (:idCompra, :idInsumo, :cantidad, :precioUnitario)"
+                "INSERT INTO detalle_compras (idCompra, idInsumo, cantidad, precioUnitario, fechaVencimiento) 
+                 VALUES (:idCompra, :idInsumo, :cantidad, :precioUnitario, :fechaVencimiento)"
             );
 
             // 3. Actualizar (o crear) el registro en 'inventarios' para ese almacén + insumo
@@ -90,6 +90,7 @@ class Compra {
                     'idInsumo' => $d['idInsumo'],
                     'cantidad' => $d['cantidad'],
                     'precioUnitario' => $d['precioUnitario'],
+                    'fechaVencimiento' => $d['fechaVencimiento'] ?? null,
                 ]);
 
                 $stmtInventario->execute([

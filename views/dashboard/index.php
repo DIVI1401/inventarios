@@ -41,14 +41,17 @@
 <div class="panel">
     <h3>⏰ Insumos próximos a vencer</h3>
     <?php if (empty($proximosAVencer)): ?>
-        <p>No hay insumos próximos a vencer.</p>
+        <p>No hay lotes próximos a vencer.</p>
     <?php else: ?>
         <table>
-            <tr><th>Insumo</th><th>Fecha de vencimiento</th></tr>
-            <?php foreach ($proximosAVencer as $p): ?>
-            <tr>
+            <tr><th>Insumo</th><th>Almacén</th><th>Lote (compra)</th><th>Fecha de vencimiento</th><th>Estado</th></tr>
+            <?php foreach ($proximosAVencer as $p): $dias = (int)$p['diasRestantes']; ?>
+            <tr class="<?= $dias < 0 ? 'stock-bajo-fila' : '' ?>">
                 <td><?= htmlspecialchars($p['nombre']) ?></td>
+                <td><?= htmlspecialchars($p['nombreAlmacen']) ?></td>
+                <td><a href="index.php?action=compras.detalle&id=<?= (int)$p['idCompra'] ?>">#<?= (int)$p['idCompra'] ?></a> (<?= (float)$p['cantidad'] ?> <?= htmlspecialchars($p['unidadMedida']) ?>)</td>
                 <td><?= htmlspecialchars($p['fechaVencimiento']) ?></td>
+                <td><?= $dias < 0 ? 'Vencido hace ' . abs($dias) . ' día(s)' : ($dias === 0 ? 'Vence hoy' : 'Vence en ' . $dias . ' día(s)') ?></td>
             </tr>
             <?php endforeach; ?>
         </table>
