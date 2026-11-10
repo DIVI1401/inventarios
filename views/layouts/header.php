@@ -38,7 +38,6 @@ $rol = $_SESSION['rol'] ?? '';
 
                 <div class="nav-section-label">Productos y Recetas</div>
                 <a href="index.php?action=productos" class="nav-link text-white">Productos y Recetas</a>
-                <a href="index.php?action=productos.stock" class="nav-link text-white">Stock de Productos</a>
             <?php endif; ?>
 
             <!-- ===== OPERACIONES (Administrador y Bodeguero) ===== -->
@@ -55,17 +54,25 @@ $rol = $_SESSION['rol'] ?? '';
             <div class="nav-section-label">Inventario</div>
             <a href="index.php?action=inventario" class="nav-link text-white">Inventario</a>
             <a href="index.php?action=inventario.alertas" class="nav-link text-white">Alertas y Sugerencias</a>
+            <!-- Cuántos platos se pueden preparar con el stock de cada sucursal -->
+            <a href="index.php?action=productos.stock" class="nav-link text-white">Stock de Productos</a>
+            <a href="index.php?action=reportes.exportarExcel" class="nav-link text-white">Exportar Inventario</a>
 
-            <!-- ===== REPORTES (solo Administrador) ===== -->
-            <?php if ($rol === 'Administrador'): ?>
+            <!-- ===== REPORTES =====
+                 Bodeguero: consultas operativas (mermas y precios para decidir a qué proveedor comprar).
+                 Administrador: además ventas, compras y auditoría. -->
+            <?php if ($rol === 'Administrador' || $rol === 'Bodeguero'): ?>
                 <div class="nav-section-label">Reportes</div>
-                <a href="index.php?action=reportes.ventas" class="nav-link text-white">Reporte Ventas</a>
-                <a href="index.php?action=reportes.comprasProveedor" class="nav-link text-white">Reporte Compras</a>
+                <?php if ($rol === 'Administrador'): ?>
+                    <a href="index.php?action=reportes.ventas" class="nav-link text-white">Reporte Ventas</a>
+                    <a href="index.php?action=reportes.comprasProveedor" class="nav-link text-white">Reporte Compras</a>
+                <?php endif; ?>
                 <a href="index.php?action=reportes.mermas" class="nav-link text-white">Reporte Mermas</a>
                 <a href="index.php?action=precios.historial" class="nav-link text-white">Historial Precios</a>
                 <a href="index.php?action=precios.comparativa" class="nav-link text-white">Comparar Precios</a>
-                <a href="index.php?action=reportes.auditoria" class="nav-link text-white">Log Auditoría</a>
-                <a href="index.php?action=reportes.exportarExcel" class="nav-link text-white">Exportar Inventario</a>
+                <?php if ($rol === 'Administrador'): ?>
+                    <a href="index.php?action=reportes.auditoria" class="nav-link text-white">Log Auditoría</a>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div>
@@ -80,9 +87,18 @@ $rol = $_SESSION['rol'] ?? '';
                 <span class="badge bg-secondary ms-2"><?= htmlspecialchars($rol) ?></span>
             </div>
             <div>
-                <!-- REQ-41/REQ-42: Acceso a Mi Perfil -->
                 <a href="index.php?action=perfil" class="btn btn-outline-primary btn-sm me-2">Mi Perfil</a>
                 <a href="index.php?action=logout" class="btn btn-outline-danger btn-sm">Cerrar sesión</a>
             </div>
         </div>
         <div class="content p-4">
+            <?php // Mensajes flash: cualquier controlador puede dejar exito / mensaje / error en la sesión ?>
+            <?php foreach (['exito' => 'success', 'mensaje' => 'success', 'error' => 'danger'] as $clave => $tipo): ?>
+                <?php if (!empty($_SESSION[$clave])): ?>
+                    <div class="alert alert-<?= $tipo ?> alert-dismissible fade show" role="alert">
+                        <?= htmlspecialchars($_SESSION[$clave]) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                    <?php unset($_SESSION[$clave]); ?>
+                <?php endif; ?>
+            <?php endforeach; ?>

@@ -23,8 +23,9 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Precio de Venta ($) *</label>
-                <input type="number" step="0.01" name="precio" class="form-control" required placeholder="0.00">
+                <label class="form-label">Margen de ganancia (%) *</label>
+                <input type="number" step="0.5" min="0" max="<?= Producto::MARGEN_MAXIMO ?>" name="margenGanancia" class="form-control" required value="<?= Producto::MARGEN_POR_DEFECTO ?>">
+                <div class="form-text">Porcentaje del precio de venta que queda como ganancia. En restaurantes se usa la regla del <em>food cost</em>: los insumos deben costar cerca del 30 % del precio, o sea un margen del 70 %. El precio de venta se calcula solo al guardar la receta.</div>
             </div>
 
             <div class="mb-3">
@@ -34,7 +35,7 @@
 
             <div class="d-flex justify-content-end gap-2">
                 <a href="index.php?action=productos" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                <button type="submit" class="btn btn-primary">Guardar y armar receta</button>
             </div>
         </form>
     </div>

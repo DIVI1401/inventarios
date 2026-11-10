@@ -35,20 +35,26 @@ class ProductoController {
     public function crear(): void {
         $nombre = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-        $precio = floatval($_POST['precio'] ?? 0);
+        $margen = floatval($_POST['margenGanancia'] ?? Producto::MARGEN_POR_DEFECTO);
         $idCategoria = !empty($_POST['idCategoria']) ? (int)$_POST['idCategoria'] : null;
 
-        if (empty($nombre) || $precio <= 0) {
-            $_SESSION['error'] = "El nombre y un precio válido son obligatorios.";
+        if (empty($nombre)) {
+            $_SESSION['error'] = "El nombre del producto es obligatorio.";
+            header("Location: index.php?action=productos.crear");
+            exit;
+        }
+        if ($margen < 0 || $margen > Producto::MARGEN_MAXIMO) {
+            $_SESSION['error'] = "El margen de ganancia debe estar entre 0 % y " . Producto::MARGEN_MAXIMO . " %.";
             header("Location: index.php?action=productos.crear");
             exit;
         }
 
-        $idProducto = $this->productoModel->crear($nombre, $descripcion, $precio, $idCategoria);
+        $idProducto = $this->productoModel->crear($nombre, $descripcion, $margen, $idCategoria);
         Log::registrar($_SESSION['idUsuario'], 'Creó producto', "Producto ID: {$idProducto} - {$nombre}");
 
-        $_SESSION['exito'] = "Producto creado exitosamente.";
-        header("Location: index.php?action=productos");
+        // Siguiente paso natural: armar la receta, que es la que define el precio
+        $_SESSION['exito'] = "Producto creado. Ahora agrega los insumos de la receta para calcular su precio de venta.";
+        header("Location: index.php?action=productos.receta&id={$idProducto}");
         exit;
     }
 
@@ -63,6 +69,8 @@ class ProductoController {
         }
 
         $categorias = $this->categoriaModel->listarTodas();
+        $receta = $this->recetaModel->obtenerPorProducto($idProducto);
+        $costoReceta = $receta ? $this->recetaModel->calcularCosto($receta['idReceta']) : 0;
         require __DIR__ . '/../views/productos/editar.php';
     }
 
@@ -70,17 +78,17 @@ class ProductoController {
         $idProducto = (int)($_POST['idProducto'] ?? 0);
         $nombre = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-        $precio = floatval($_POST['precio'] ?? 0);
+        $margen = floatval($_POST['margenGanancia'] ?? Producto::MARGEN_POR_DEFECTO);
         $idCategoria = !empty($_POST['idCategoria']) ? (int)$_POST['idCategoria'] : null;
         $estado = isset($_POST['estado']) ? (int)$_POST['estado'] : 1;
 
-        if ($idProducto <= 0 || empty($nombre) || $precio <= 0) {
-            $_SESSION['error'] = "Todos los campos son obligatorios y el precio debe ser mayor a 0.";
+        if ($idProducto <= 0 || empty($nombre) || $margen < 0 || $margen > Producto::MARGEN_MAXIMO) {
+            $_SESSION['error'] = "El nombre es obligatorio y el margen debe estar entre 0 % y " . Producto::MARGEN_MAXIMO . " %.";
             header("Location: index.php?action=productos.editar&id={$idProducto}");
             exit;
         }
 
-        $this->productoModel->actualizar($idProducto, $nombre, $descripcion, $precio, $idCategoria, $estado);
+        $this->productoModel->actualizar($idProducto, $nombre, $descripcion, $margen, $idCategoria, $estado);
         Log::registrar($_SESSION['idUsuario'], 'Actualizó producto', "Producto ID: {$idProducto}");
 
         $_SESSION['exito'] = "Producto actualizado correctamente.";
@@ -116,7 +124,10 @@ class ProductoController {
         $receta = $this->recetaModel->obtenerPorProducto($idProducto);
         $insumosReceta = $receta ? $this->recetaModel->obtenerInsumosDeReceta($receta['idReceta']) : [];
         $costoReceta = $receta ? $this->recetaModel->calcularCosto($receta['idReceta']) : 0;
-        $todosInsumos = $this->insumoModel->listarTodos();
+        $todosInsumos = array_values(array_filter(
+            $this->insumoModel->listarTodos(),
+            fn($i) => (int)$i['estado'] === 1 || in_array($i['idInsumo'], array_column($insumosReceta, 'idInsumo'))
+        ));
 
         require __DIR__ . '/../views/productos/receta.php';
     }
@@ -136,8 +147,10 @@ class ProductoController {
         $ok = $this->recetaModel->guardarReceta($idProducto, $instrucciones, $insumos, $cantidades);
 
         if ($ok) {
+            $this->productoModel->recalcularPrecios(idProducto: $idProducto);
+            $producto = $this->productoModel->obtenerPorId($idProducto);
             Log::registrar($_SESSION['idUsuario'], 'Guardó receta', "Receta asociada al producto ID: {$idProducto}");
-            $_SESSION['exito'] = "Receta guardada exitosamente.";
+            $_SESSION['exito'] = "Receta guardada. Precio de venta calculado: $" . number_format((float)$producto['precio'], 0, ',', '.');
         } else {
             $_SESSION['error'] = "Error al guardar la receta.";
         }

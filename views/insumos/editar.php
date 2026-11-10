@@ -2,6 +2,11 @@
 
 <h2 style="margin-bottom:20px;">Editar insumo</h2>
 
+<?php if (!empty($_SESSION['error'])): ?>
+    <p class="error-msg"><?= htmlspecialchars($_SESSION['error']) ?></p>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
 <div class="panel">
     <form method="POST" action="index.php?action=insumos.actualizar" class="formulario">
         <input type="hidden" name="idInsumo" value="<?= $insumo['idInsumo'] ?>">
@@ -16,11 +21,11 @@
             <?php endforeach; ?>
         </select>
 
-        <label>Precio unitario</label>
-        <input type="number" step="0.01" name="precioUnitario" value="<?= $insumo['precioUnitario'] ?>" required>
+        <label>Precio de referencia (por unidad de medida)</label>
+        <input type="number" step="0.01" min="0.01" name="precioUnitario" value="<?= $insumo['precioUnitario'] ?>" required>
 
-        <label>Fecha de vencimiento (opcional)</label>
-        <input type="date" name="fechaVencimiento" value="<?= $insumo['fechaVencimiento'] ?>">
+        <label>Stock Mínimo (Umbral de Alerta)</label>
+        <input type="number" step="0.01" min="0" name="stockMinimo" value="<?= (float)$insumo['stockMinimo'] ?>" required>
         <label>Categoría</label>
         <select name="idCategoria">
             <option value="">-- Sin categoría --</option>

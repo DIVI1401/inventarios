@@ -2,9 +2,11 @@
 
 session_start();
 
-// Habilitar visualización de errores temporalmente para diagnóstico
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Errores visibles solo en local; en Render (DATABASE_URL definida) van al log y no a la pantalla
+$enProduccion = (bool)getenv('DATABASE_URL');
+ini_set('display_errors', $enProduccion ? '0' : '1');
+ini_set('display_startup_errors', $enProduccion ? '0' : '1');
+ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/config/Database.php';
@@ -300,7 +302,7 @@ switch ($action) {
         break;
     
     case 'inventario.notificarAhora':
-        requiereRol(['Administrador']);
+        requiereRol(['Administrador', 'Bodeguero']);
         (new InventarioController())->notificarAhora();
         break;
 

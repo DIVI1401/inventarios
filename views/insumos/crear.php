@@ -2,6 +2,11 @@
 
 <h2 style="margin-bottom:20px;">Nuevo insumo</h2>
 
+<?php if (!empty($_SESSION['error'])): ?>
+    <p class="error-msg"><?= htmlspecialchars($_SESSION['error']) ?></p>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
 <div class="panel">
     <form method="POST" action="index.php?action=insumos.guardar" class="formulario">
         <label>Nombre</label>
@@ -16,14 +21,13 @@
             <option value="ml">Mililitros</option>
         </select>
 
-        <label>Precio unitario</label>
+        <label>Precio de referencia (por unidad de medida)</label>
         <input type="number" step="0.01" min="0.01" name="precioUnitario" required>
 
         <label>Stock Mínimo (Umbral de Alerta)</label>
-        <input type="number" name="stockMinimo" min="0" value="5" required>
+        <input type="number" step="0.01" name="stockMinimo" min="0" value="5" required>
+        <small style="color:#666;display:block;margin-bottom:12px;">La fecha de vencimiento se registra en cada compra, porque cada lote vence en una fecha distinta.</small>
 
-        <label>Fecha de vencimiento (opcional)</label>
-        <input type="date" name="fechaVencimiento" min="<?= date('Y-m-d') ?>">
         <label>Categoría</label>
         <select name="idCategoria">
             <option value="">-- Sin categoría --</option>

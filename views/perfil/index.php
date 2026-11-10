@@ -26,7 +26,7 @@
 
 <!-- REQ-41: Formulario de datos personales -->
 <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; max-width: 500px;">
-    <h3>Editar Datos Personales (REQ-41)</h3>
+    <h3>Editar Datos Personales</h3>
     <form action="index.php?action=guardarPerfil" method="POST">
         <div style="margin-bottom: 15px;">
             <label>Nombre:</label><br>
@@ -42,7 +42,7 @@
 
 <!-- REQ-42: Formulario de cambio de contraseña -->
 <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; max-width: 500px;">
-    <h3>Cambiar Contraseña (REQ-42)</h3>
+    <h3>Cambiar Contraseña</h3>
     <form action="index.php?action=cambiarPassword" method="POST">
         <div style="margin-bottom: 15px;">
             <label>Nueva Contraseña:</label><br>

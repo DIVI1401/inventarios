@@ -30,13 +30,19 @@ class Insumo {
         $stmt->execute([$idCategoria]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    // Incluye el stock mínimo actual (es el mismo en todos los almacenes, ver propagarStockMinimo)
     public function buscarPorId($id) {
-        $stmt = $this->db->prepare("SELECT * FROM insumos WHERE idInsumo = ?");
+        $stmt = $this->db->prepare(
+            "SELECT i.*,
+                    COALESCE((SELECT MAX(inv.stockMinimo) FROM inventarios inv WHERE inv.idInsumo = i.idInsumo), 0) AS stockMinimo
+             FROM insumos i
+             WHERE i.idInsumo = ?"
+        );
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function validar($nombre, $precioUnitario, $fechaVencimiento) {
+    public function validar($nombre, $precioUnitario, $stockMinimo = 0) {
         $errores = [];
 
         if (empty($nombre)) {
@@ -47,18 +53,19 @@ class Insumo {
             $errores[] = "El precio unitario debe ser mayor a cero.";
         }
 
-        if (!empty($fechaVencimiento) && $fechaVencimiento < date('Y-m-d')) {
-            $errores[] = "La fecha de vencimiento no puede ser anterior a hoy.";
+        if ($stockMinimo < 0) {
+            $errores[] = "El stock mínimo no puede ser negativo.";
         }
 
         return $errores;
     }
 
-    public function crear($nombre, $unidadMedida, $precioUnitario, $stockMinimo, $fechaVencimiento, $idCategoria) {
-        $sql = "INSERT INTO insumos (nombre, unidadMedida, precioUnitario, fechaVencimiento, idCategoria, estado) 
-                VALUES (?, ?, ?, ?, ?, 1)";
+    // La fecha de vencimiento ya no va aquí: se registra por lote en cada compra (detalle_compras)
+    public function crear($nombre, $unidadMedida, $precioUnitario, $stockMinimo, $idCategoria) {
+        $sql = "INSERT INTO insumos (nombre, unidadMedida, precioUnitario, idCategoria, estado) 
+                VALUES (?, ?, ?, ?, 1)";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$nombre, $unidadMedida, $precioUnitario, $fechaVencimiento ?: null, $idCategoria ?: null]);
+        $stmt->execute([$nombre, $unidadMedida, $precioUnitario, $idCategoria ?: null]);
 
         $idInsumo = (int)$this->db->lastInsertId();
         $this->propagarStockMinimo($idInsumo, $stockMinimo);
@@ -66,12 +73,12 @@ class Insumo {
         return true;
     }
 
-    public function editar($id, $nombre, $unidadMedida, $precioUnitario, $stockMinimo, $fechaVencimiento, $idCategoria) {
+    public function editar($id, $nombre, $unidadMedida, $precioUnitario, $stockMinimo, $idCategoria) {
         $sql = "UPDATE insumos 
-                SET nombre = ?, unidadMedida = ?, precioUnitario = ?, fechaVencimiento = ?, idCategoria = ?
+                SET nombre = ?, unidadMedida = ?, precioUnitario = ?, idCategoria = ?
                 WHERE idInsumo = ?";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$nombre, $unidadMedida, $precioUnitario, $fechaVencimiento ?: null, $idCategoria ?: null, $id]);
+        $stmt->execute([$nombre, $unidadMedida, $precioUnitario, $idCategoria ?: null, $id]);
 
         $this->propagarStockMinimo($id, $stockMinimo);
 
@@ -92,12 +99,27 @@ class Insumo {
         return $stmt->execute([$estado ? 1 : 0, $id]);
     }
 
-    public function proximosAVencer() {
-        $sql = "SELECT * FROM insumos 
-                WHERE fechaVencimiento IS NOT NULL 
-                AND fechaVencimiento >= CURRENT_DATE
-                ORDER BY fechaVencimiento ASC";
-        $stmt = $this->db->query($sql);
+    /**
+     * Lotes comprados que vencen en los próximos $dias días (o que ya vencieron)
+     * y cuyo insumo todavía tiene existencias en el almacén donde se recibió.
+     */
+    public function proximosAVencer(int $dias = 7): array {
+        $sql = "SELECT i.idInsumo, i.nombre, i.unidadMedida, a.nombre AS nombreAlmacen,
+                       dc.fechaVencimiento, dc.cantidad, c.idCompra, inv.cantidadDisponible,
+                       (dc.fechaVencimiento - CURRENT_DATE) AS diasRestantes
+                FROM detalle_compras dc
+                INNER JOIN compras c     ON c.idCompra = dc.idCompra
+                INNER JOIN insumos i     ON i.idInsumo = dc.idInsumo
+                INNER JOIN almacenes a   ON a.idAlmacen = c.idAlmacen
+                INNER JOIN inventarios inv ON inv.idAlmacen = c.idAlmacen AND inv.idInsumo = dc.idInsumo
+                WHERE dc.fechaVencimiento IS NOT NULL
+                  AND dc.fechaVencimiento <= CURRENT_DATE + CAST(? AS INTEGER)
+                  AND dc.fechaVencimiento >= CURRENT_DATE - 30
+                  AND inv.cantidadDisponible > 0
+                  AND i.estado = 1
+                ORDER BY dc.fechaVencimiento ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$dias]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

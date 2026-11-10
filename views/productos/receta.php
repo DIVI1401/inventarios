@@ -21,7 +21,7 @@
         <div class="col-md-7">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Insumos de la Receta (Req. 27)</h5>
+                    <h5 class="card-title mb-0">Insumos de la Receta</h5>
                     <button type="button" class="btn" id="btnAgregarInsumo" style="padding: 6px 14px; font-size: 14px;">
                         <i class="bi bi-plus"></i> Agregar Insumo
                     </button>
@@ -35,14 +35,14 @@
                                         <select name="insumos[]" class="form-select" required>
                                             <option value="">-- Insumo --</option>
                                             <?php foreach ($todosInsumos as $ins): ?>
-                                                <option value="<?= $ins['idInsumo'] ?>" <?= $ins['idInsumo'] == $item['idInsumo'] ? 'selected' : '' ?>>
+                                                <option value="<?= $ins['idInsumo'] ?>" data-precio="<?= (float)$ins['precioUnitario'] ?>" <?= $ins['idInsumo'] == $item['idInsumo'] ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($ins['nombre']) ?> (<?= $ins['unidadMedida'] ?>)
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <input type="number" step="0.001" name="cantidades[]" class="form-control" placeholder="Cantidad" value="<?= $item['cantidad'] ?>" required>
+                                        <input type="number" step="0.001" min="0.001" name="cantidades[]" class="form-control" placeholder="Cantidad" value="<?= $item['cantidad'] ?>" required>
                                     </div>
                                     <div class="col-md-2">
                                         <button type="button" class="btn btn-outline-danger btnEliminarFila"><i class="bi bi-trash"></i></button>
@@ -55,14 +55,14 @@
                                     <select name="insumos[]" class="form-select" required>
                                         <option value="">-- Insumo --</option>
                                         <?php foreach ($todosInsumos as $ins): ?>
-                                            <option value="<?= $ins['idInsumo'] ?>">
+                                            <option value="<?= $ins['idInsumo'] ?>" data-precio="<?= (float)$ins['precioUnitario'] ?>">
                                                 <?= htmlspecialchars($ins['nombre']) ?> (<?= $ins['unidadMedida'] ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="number" step="0.001" name="cantidades[]" class="form-control" placeholder="Cantidad" required>
+                                    <input type="number" step="0.001" min="0.001" name="cantidades[]" class="form-control" placeholder="Cantidad" required>
                                 </div>
                                 <div class="col-md-2">
                                     <button type="button" class="btn btn-outline-danger btnEliminarFila"><i class="bi bi-trash"></i></button>
@@ -84,18 +84,16 @@
                 </div>
             </div>
 
-            <?php if ($costoReceta > 0): ?>
             <div class="card shadow-sm mb-4 border-success">
                 <div class="card-body">
-                    <h6 class="text-muted mb-1">Costo de preparación</h6>
-                    <h3 class="text-success">$<?= number_format($costoReceta, 2) ?></h3>
-                    <small class="text-muted">
-                        Precio de venta: $<?= number_format($producto['precio'], 2) ?> — 
-                        Margen: $<?= number_format($producto['precio'] - $costoReceta, 2) ?>
-                    </small>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Costo de preparación</span><strong id="resCosto">$0</strong></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Margen de ganancia</span><strong><?= (float)$producto['margenGanancia'] ?> %</strong></div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between align-items-center"><span>Precio de venta</span><h3 class="text-success mb-0" id="resPrecio">$0</h3></div>
+                    <div class="d-flex justify-content-between"><small class="text-muted">Ganancia por unidad</small><small id="resGanancia">$0</small></div>
+                    <small class="text-muted d-block mt-2">El precio se calcula automáticamente con el costo de los insumos y el margen del producto (redondeado a <?= Producto::REDONDEO ?>). El margen se cambia en <a href="index.php?action=productos.editar&id=<?= (int)$producto['idProducto'] ?>">Editar producto</a>.</small>
                 </div>
             </div>
-            <?php endif; ?>
 
             <button type="submit" class="btn btn-primary w-100 btn-lg">Guardar Receta Completa</button>
         </div>
@@ -117,11 +115,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    const margen = <?= json_encode((float)$producto['margenGanancia']) ?>, redondeo = <?= Producto::REDONDEO ?>;
+    const fmt = n => '$' + n.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    function recalcular() {
+        let costo = 0;
+        contenedor.querySelectorAll('.fila-insumo').forEach(function (fila) {
+            const sel = fila.querySelector('select');
+            const opt = sel.options[sel.selectedIndex];
+            const cant = parseFloat(fila.querySelector('input').value) || 0;
+            costo += cant * (parseFloat(opt && opt.dataset.precio) || 0);
+        });
+        const precio = costo > 0 ? Math.ceil(costo / (1 - margen / 100) / redondeo) * redondeo : 0;
+        document.getElementById('resCosto').textContent = fmt(costo);
+        document.getElementById('resPrecio').textContent = fmt(precio);
+        document.getElementById('resGanancia').textContent = fmt(precio - costo);
+    }
+    contenedor.addEventListener('input', recalcular);
+    contenedor.addEventListener('change', recalcular);
+    recalcular();
+
     contenedor.addEventListener('click', function(e) {
         if (e.target.closest('.btnEliminarFila')) {
             const filas = contenedor.querySelectorAll('.fila-insumo');
             if (filas.length > 1) {
                 e.target.closest('.fila-insumo').remove();
+                recalcular();
             } else {
                 alert('La receta debe contener al menos un insumo.');
             }

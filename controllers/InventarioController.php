@@ -62,10 +62,14 @@ class InventarioController {
     }
 
     public function notificarAhora(): void {
-    require_once __DIR__ . '/../models/EmailService.php';
-    $sugerencias = $this->inventarioModel->obtenerSugerenciasCompra();
-    EmailService::notificarResumenStockBajo($sugerencias);
-    header('Location: index.php?action=inventario.alertas&msj=correo_enviado');
-    exit;
+        require_once __DIR__ . '/../models/EmailService.php';
+        $sugerencias = $this->inventarioModel->obtenerSugerenciasCompra();
+        if (EmailService::notificarResumenStockBajo($sugerencias)) {
+            $_SESSION['exito'] = 'Correo de alerta enviado correctamente.';
+        } else {
+            $_SESSION['error'] = 'No se pudo enviar el correo: ' . EmailService::ultimoError();
+        }
+        header('Location: index.php?action=inventario.alertas');
+        exit;
     }
 }

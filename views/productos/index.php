@@ -16,14 +16,16 @@
                         <th>ID</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
-                        <th>Precio</th>
+                        <th>Costo receta</th>
+                        <th>Margen</th>
+                        <th>Precio venta</th>
                         <th>Estado</th>
                         <th class="text-end">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($productos)): ?>
-                        <tr><td colspan="6" class="text-center py-4 text-muted">No hay productos registrados.</td></tr>
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No hay productos registrados.</td></tr>
                     <?php else: ?>
                         <?php foreach ($productos as $p): ?>
                             <tr>
@@ -35,7 +37,9 @@
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($p['categoria'] ?? 'Sin categoría') ?></td>
-                                <td>$<?= number_format($p['precio'], 2) ?></td>
+                                <td><?= $p['costoTotal'] > 0 ? '$' . number_format($p['costoTotal'], 2) : '<span class="text-muted">Sin receta</span>' ?></td>
+                                <td><?= (float)$p['margenGanancia'] ?> %</td>
+                                <td><?= $p['costoTotal'] > 0 ? '<strong>$' . number_format($p['precio'], 2) . '</strong>' : '<span class="text-muted">—</span>' ?></td>
                                 <td>
                                     <span class="badge bg-<?= $p['estado'] ? 'success' : 'danger' ?>">
                                         <?= $p['estado'] ? 'Activo' : 'Inactivo' ?>
