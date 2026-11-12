@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Insumo.php';
 require_once __DIR__ . '/../models/Compra.php';
 require_once __DIR__ . '/../models/Categoria.php';
 require_once __DIR__ . '/../models/Producto.php';
+require_once __DIR__ . '/../models/Registro.php';
 class InsumoController {
     private Insumo $insumoModel;
 
@@ -17,7 +18,7 @@ class InsumoController {
     }
 
     public function mostrarFormularioCrear(): void {
-        $categorias = (new Categoria())->listarTodas();
+        $categorias = Registro::filtrarActivos((new Categoria())->listarTodas(), 'idCategoria');
         require __DIR__ . '/../views/insumos/crear.php';
     }
 
@@ -29,6 +30,9 @@ class InsumoController {
         $idCategoria = (int)($_POST['idCategoria'] ?? 0) ?: null;
 
         $errores = $this->insumoModel->validar($nombre, $precioUnitario, $stockMinimo);
+        if ($idCategoria && !Registro::estaActivo('categorias', $idCategoria)) {
+            $errores[] = "La categoría seleccionada está desactivada.";
+        }
 
         if (!empty($errores)) {
             $_SESSION['error'] = implode(' ', $errores);
@@ -48,7 +52,7 @@ class InsumoController {
             header("Location: index.php?action=insumos");
             exit;
         }
-        $categorias = (new Categoria())->listarTodas();
+        $categorias = Registro::filtrarActivos((new Categoria())->listarTodas(), 'idCategoria', [(int)$insumo['idCategoria']]);
         require __DIR__ . '/../views/insumos/editar.php';
     }
 
@@ -61,6 +65,10 @@ class InsumoController {
         $idCategoria = (int)($_POST['idCategoria'] ?? 0) ?: null;
 
         $errores = $this->insumoModel->validar($nombre, $precioUnitario, $stockMinimo);
+        $actual = $this->insumoModel->buscarPorId($id);
+        if ($idCategoria && $idCategoria !== (int)($actual['idCategoria'] ?? 0) && !Registro::estaActivo('categorias', $idCategoria)) {
+            $errores[] = "La categoría seleccionada está desactivada.";
+        }
 
         if (!empty($errores)) {
             $_SESSION['error'] = implode(' ', $errores);

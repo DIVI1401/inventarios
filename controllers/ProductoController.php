@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Insumo.php';
 require_once __DIR__ . '/../models/Receta.php';
 require_once __DIR__ . '/../models/Log.php';
 require_once __DIR__ . '/../models/Almacen.php';
+require_once __DIR__ . '/../models/Registro.php';
 class ProductoController {
     private Producto $productoModel;
     private Categoria $categoriaModel;
@@ -28,7 +29,7 @@ class ProductoController {
     }
 
     public function mostrarFormularioCrear(): void {
-        $categorias = $this->categoriaModel->listarTodas();
+        $categorias = Registro::filtrarActivos($this->categoriaModel->listarTodas(), 'idCategoria');
         require __DIR__ . '/../views/productos/crear.php';
     }
 
@@ -40,6 +41,11 @@ class ProductoController {
 
         if (empty($nombre)) {
             $_SESSION['error'] = "El nombre del producto es obligatorio.";
+            header("Location: index.php?action=productos.crear");
+            exit;
+        }
+        if ($idCategoria && !Registro::estaActivo('categorias', $idCategoria)) {
+            $_SESSION['error'] = "La categoría seleccionada está desactivada.";
             header("Location: index.php?action=productos.crear");
             exit;
         }
@@ -68,7 +74,7 @@ class ProductoController {
             exit;
         }
 
-        $categorias = $this->categoriaModel->listarTodas();
+        $categorias = Registro::filtrarActivos($this->categoriaModel->listarTodas(), 'idCategoria', [(int)$producto['idCategoria']]);
         $receta = $this->recetaModel->obtenerPorProducto($idProducto);
         $costoReceta = $receta ? $this->recetaModel->calcularCosto($receta['idReceta']) : 0;
         require __DIR__ . '/../views/productos/editar.php';
@@ -84,6 +90,13 @@ class ProductoController {
 
         if ($idProducto <= 0 || empty($nombre) || $margen < 0 || $margen > Producto::MARGEN_MAXIMO) {
             $_SESSION['error'] = "El nombre es obligatorio y el margen debe estar entre 0 % y " . Producto::MARGEN_MAXIMO . " %.";
+            header("Location: index.php?action=productos.editar&id={$idProducto}");
+            exit;
+        }
+
+        $actual = $this->productoModel->obtenerPorId($idProducto);
+        if ($idCategoria && $idCategoria !== (int)($actual['idCategoria'] ?? 0) && !Registro::estaActivo('categorias', $idCategoria)) {
+            $_SESSION['error'] = "La categoría seleccionada está desactivada.";
             header("Location: index.php?action=productos.editar&id={$idProducto}");
             exit;
         }
@@ -144,6 +157,18 @@ class ProductoController {
             exit;
         }
 
+        // Los insumos nuevos de la receta deben estar activos (los que ya tenía se conservan)
+        $recetaActual = $this->recetaModel->obtenerPorProducto($idProducto);
+        $yaEnReceta = $recetaActual
+            ? array_map('intval', array_column($this->recetaModel->obtenerInsumosDeReceta($recetaActual['idReceta']), 'idInsumo'))
+            : [];
+        $nuevos = array_diff(array_map('intval', array_filter($insumos)), $yaEnReceta);
+        if (!Registro::todosActivos('insumos', $nuevos)) {
+            $_SESSION['error'] = "La receta incluye un insumo desactivado.";
+            header("Location: index.php?action=productos.receta&id={$idProducto}");
+            exit;
+        }
+
         $ok = $this->recetaModel->guardarReceta($idProducto, $instrucciones, $insumos, $cantidades);
 
         if ($ok) {
@@ -175,7 +200,7 @@ class ProductoController {
 
         public function stockDisponible(): void {
         $idAlmacen = (int)($_GET['idAlmacen'] ?? 0);
-        $almacenes = (new Almacen())->listarTodos();
+        $almacenes = Registro::filtrarActivos((new Almacen())->listarTodos(), 'idAlmacen');
         $productos = $this->productoModel->listarTodos();
 
         $stockPorProducto = [];
