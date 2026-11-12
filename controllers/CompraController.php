@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Compra.php';
 require_once __DIR__ . '/../models/Proveedor.php';
 require_once __DIR__ . '/../models/Almacen.php';
 require_once __DIR__ . '/../models/Insumo.php';
+require_once __DIR__ . '/../models/Registro.php';
 
 class CompraController {
     private Compra $compraModel;
@@ -86,6 +87,14 @@ class CompraController {
 
         if (empty($detalles)) {
             $_SESSION['error'] = "Agrega al menos un insumo con cantidad.";
+            header("Location: index.php?action=compras.crear");
+            exit;
+        }
+
+        if (!Registro::estaActivo('proveedores', $idProveedor)
+            || !Registro::estaActivo('almacenes', $idAlmacen)
+            || !Registro::todosActivos('insumos', array_column($detalles, 'idInsumo'))) {
+            $_SESSION['error'] = "El proveedor, el almacén o algún insumo de la compra está desactivado.";
             header("Location: index.php?action=compras.crear");
             exit;
         }

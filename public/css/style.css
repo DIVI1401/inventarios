@@ -226,6 +226,36 @@ table tr:hover {
     color: #16a34a;
 }
 
+/* Eliminar: formulario POST que se ve como enlace, junto a Activar */
+.form-eliminar {
+    display: inline;
+    margin: 0;
+}
+.btn-eliminar {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #b91c1c;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Quitar una línea en el formulario de compra */
+form.formulario .btn-quitar-fila {
+    margin-top: 0;
+    background: #fff;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+form.formulario .btn-quitar-fila:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
 /* ===== FORMULARIOS ===== */
 form.formulario {
     background: #fff;

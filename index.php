@@ -24,6 +24,7 @@ require_once __DIR__ . '/controllers/ReporteController.php';
 require_once __DIR__ . '/controllers/CategoriaController.php';
 require_once __DIR__ . '/controllers/ProductoController.php'; 
 require_once __DIR__ . '/controllers/VentaController.php';
+require_once __DIR__ . '/controllers/EliminarController.php';
 
 $action = $_GET['action'] ?? 'login';
 $auth = new AuthController();
@@ -426,6 +427,17 @@ switch ($action) {
     case 'reportes.ventasExcel':
         requiereRol(['Administrador']);
         (new ReporteController())->exportarVentasExcel();
+        break;
+
+    // ===== ELIMINAR (solo registros desactivados y sin historial) =====
+    case 'usuarios.eliminar':
+    case 'almacenes.eliminar':
+    case 'categorias.eliminar':
+    case 'insumos.eliminar':
+    case 'proveedores.eliminar':
+    case 'productos.eliminar':
+        requiereRol(['Administrador']);
+        (new EliminarController())->eliminar(explode('.', $action)[0]);
         break;
 
     default:

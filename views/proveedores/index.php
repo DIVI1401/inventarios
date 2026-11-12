@@ -20,6 +20,11 @@
                     | <a href="index.php?action=proveedores.desactivar&id=<?= $p['idProveedor'] ?>" class="btn-danger">Desactivar</a>
                 <?php else: ?>
                     | <a href="index.php?action=proveedores.activar&id=<?= $p['idProveedor'] ?>" class="btn-success">Activar</a>
+                    | <form method="POST" action="index.php?action=proveedores.eliminar" class="form-eliminar"
+                            onsubmit="return confirm('¿Eliminar definitivamente? Esta acción no se puede deshacer.');">
+                        <input type="hidden" name="id" value="<?= (int)$p['idProveedor'] ?>">
+                        <button type="submit" class="btn-eliminar">Eliminar</button>
+                    </form>
                 <?php endif; ?>
             </td>
         </tr>

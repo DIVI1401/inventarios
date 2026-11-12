@@ -21,6 +21,11 @@
                     | <a href="index.php?action=almacenes.desactivar&id=<?= $a['idAlmacen'] ?>" class="btn-danger">Desactivar</a>
                 <?php else: ?>
                     | <a href="index.php?action=almacenes.activar&id=<?= $a['idAlmacen'] ?>" class="btn-success">Activar</a>
+                    | <form method="POST" action="index.php?action=almacenes.eliminar" class="form-eliminar"
+                            onsubmit="return confirm('¿Eliminar definitivamente? Esta acción no se puede deshacer.');">
+                        <input type="hidden" name="id" value="<?= (int)$a['idAlmacen'] ?>">
+                        <button type="submit" class="btn-eliminar">Eliminar</button>
+                    </form>
                 <?php endif; ?>
             </td>
         </tr>

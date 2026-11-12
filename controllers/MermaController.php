@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Merma.php';
 require_once __DIR__ . '/../models/Almacen.php';
 require_once __DIR__ . '/../models/Insumo.php';
+require_once __DIR__ . '/../models/Registro.php';
 
 class MermaController {
     private Merma $mermaModel;
@@ -18,8 +19,8 @@ class MermaController {
     require __DIR__ . '/../views/mermas/index.php';
 }
     public function mostrarFormularioCrear(): void {
-        $almacenes = (new Almacen())->listarTodos();
-        $insumos = (new Insumo())->listarTodos();
+        $almacenes = Registro::filtrarActivos((new Almacen())->listarTodos(), 'idAlmacen');
+        $insumos = Registro::filtrarActivos((new Insumo())->listarTodos(), 'idInsumo');
         require __DIR__ . '/../views/mermas/crear.php';
     }
 
@@ -32,6 +33,12 @@ class MermaController {
 
         if (!$idInsumo || !$idAlmacen || $cantidad <= 0 || empty($motivo)) {
             $_SESSION['error'] = "Todos los campos son obligatorios y la cantidad debe ser mayor a 0.";
+            header("Location: index.php?action=mermas.crear");
+            exit;
+        }
+
+        if (!Registro::estaActivo('insumos', $idInsumo) || !Registro::estaActivo('almacenes', $idAlmacen)) {
+            $_SESSION['error'] = "El insumo o el almacén seleccionado está desactivado.";
             header("Location: index.php?action=mermas.crear");
             exit;
         }

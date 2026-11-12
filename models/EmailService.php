@@ -53,7 +53,13 @@ class EmailService {
         $c = self::config();
 
         if (!self::estaConfigurado()) {
-            self::$ultimoError = 'El correo no está configurado (falta BREVO_API_KEY o usuario/clave SMTP).';
+            self::$ultimoError = 'El correo no está configurado: el servidor no recibe la variable de entorno BREVO_API_KEY. '
+                . 'En Render → Environment agrégala con ese nombre exacto y guarda con "Save, rebuild, and deploy".';
+            error_log('[correo] ' . self::$ultimoError);
+            return false;
+        }
+        if (($c['brevoApiKey'] ?? '') !== '' && !filter_var($c['remitente'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            self::$ultimoError = 'Falta la variable de entorno MAIL_FROM (el correo remitente verificado en Brevo).';
             error_log('[correo] ' . self::$ultimoError);
             return false;
         }

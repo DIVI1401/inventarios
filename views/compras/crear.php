@@ -35,6 +35,7 @@
                 <th>Factor conversión</th>
                 <th>Precio unitario (base)</th>
                 <th>Vence (opcional)</th>
+                <th></th>
             </tr>
             <tr>
                 <td>
@@ -50,6 +51,7 @@
                 <td><input type="number" step="0.01" name="factorConversion[]" value="1" title="Ej: si compras por caja y trae 24 unidades, pon 24"></td>
                 <td><input type="number" step="0.01" min="0.01" name="precioUnitario[]" class="input-precio"></td>
                 <td><input type="date" name="fechaVencimiento[]" min="<?= date('Y-m-d') ?>" title="Fecha de vencimiento de este lote"></td>
+                <td><button type="button" class="btn-quitar-fila" onclick="quitarFila(this)" title="Quitar esta línea">✕</button></td>
             </tr>
         </table>
 
@@ -109,6 +111,16 @@
 
         const select = nuevaFila.querySelector('.select-insumo');
         actualizarPrecio(select);
+    }
+
+    // Quita una línea de la compra; siempre debe quedar al menos una
+    function quitarFila(boton) {
+        const tabla = document.getElementById('tablaInsumos');
+        if (tabla.rows.length <= 2) {
+            alert('La compra debe tener al menos un insumo.');
+            return;
+        }
+        boton.closest('tr').remove();
     }
 
     // Autocompletar el precio de la primera fila al cargar la página

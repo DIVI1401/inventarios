@@ -21,6 +21,11 @@
                     | <a href="index.php?action=usuarios.desactivar&id=<?= $u['idUsuario'] ?>" class="btn-danger">Desactivar</a>
                 <?php else: ?>
                     | <a href="index.php?action=usuarios.activar&id=<?= $u['idUsuario'] ?>" class="btn-success">Activar</a>
+                    | <form method="POST" action="index.php?action=usuarios.eliminar" class="form-eliminar"
+                            onsubmit="return confirm('¿Eliminar definitivamente? Esta acción no se puede deshacer.');">
+                        <input type="hidden" name="id" value="<?= (int)$u['idUsuario'] ?>">
+                        <button type="submit" class="btn-eliminar">Eliminar</button>
+                    </form>
                 <?php endif; ?>
             </td>
         </tr>
