@@ -54,9 +54,19 @@
                                     </a>
                                     <a href="index.php?action=productos.estado&id=<?= $p['idProducto'] ?>&estado=<?= $p['estado'] ? 0 : 1 ?>" 
                                        class="btn btn-sm btn-outline-<?= $p['estado'] ? 'warning' : 'success' ?> ms-1"
+                                       title="<?= $p['estado'] ? 'Desactivar' : 'Activar' ?>"
                                        onclick="return confirm('¿Desea cambiar el estado de este producto?');">
                                         <i class="bi bi-power"></i>
                                     </a>
+                                    <?php if (!$p['estado']): ?>
+                                        <form method="POST" action="index.php?action=productos.eliminar" class="d-inline"
+                                              onsubmit="return confirm('¿Eliminar definitivamente este producto y su receta? Esta acción no se puede deshacer.');">
+                                            <input type="hidden" name="id" value="<?= (int)$p['idProducto'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
