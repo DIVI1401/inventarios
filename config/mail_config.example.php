@@ -13,15 +13,25 @@
  * MAIL_TO: destinatarios separados por coma. Si se deja vacío, se envía a todos los
  * administradores activos registrados en el sistema.
  */
+// Lee una variable de entorno sin espacios ni saltos de línea sobrantes (comunes al pegar la clave)
+$env = static function (string $clave, string $porDefecto = ''): string {
+    $valor = getenv($clave);
+    if ($valor === false) {
+        $valor = $_SERVER[$clave] ?? $_ENV[$clave] ?? '';
+    }
+    $valor = trim((string)$valor);
+    return $valor !== '' ? $valor : $porDefecto;
+};
+
 return [
-    'brevoApiKey'   => getenv('BREVO_API_KEY') ?: '',
-    'remitente'     => getenv('MAIL_FROM') ?: '',
-    'nombreRemitente' => getenv('MAIL_FROM_NAME') ?: 'AetherStock',
+    'brevoApiKey'   => $env('BREVO_API_KEY'),
+    'remitente'     => $env('MAIL_FROM'),
+    'nombreRemitente' => $env('MAIL_FROM_NAME', 'AetherStock'),
 
-    'host'     => getenv('MAIL_HOST') ?: 'smtp.gmail.com',
-    'usuario'  => getenv('MAIL_USER') ?: '',
-    'password' => getenv('MAIL_PASSWORD') ?: '',
-    'puerto'   => (int)(getenv('MAIL_PORT') ?: 587),
+    'host'     => $env('MAIL_HOST', 'smtp.gmail.com'),
+    'usuario'  => $env('MAIL_USER'),
+    'password' => $env('MAIL_PASSWORD'),
+    'puerto'   => (int)$env('MAIL_PORT', '587'),
 
-    'correoDestino' => getenv('MAIL_TO') ?: '',
+    'correoDestino' => $env('MAIL_TO'),
 ];
